@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
+    bootstrap="tests/bootstrap.php"
+    colors="true"
+    verbose="true"
+    stopOnFailure="false"
+    stopOnError="false"
+    beStrictAboutOutputDuringTests="true"
+    beStrictAboutTestsThatDoNotTestAnything="false"
+>
+    <testsuites>
+        <testsuite name="Schema Engine Test Suite">
+            <directory>tests</directory>
+        </testsuite>
+        <testsuite name="Schema Builders">
+            <directory>tests/output/types</directory>
+        </testsuite>
+        <testsuite name="Schema Output">
+            <directory>tests/output</directory>
+        </testsuite>
+    </testsuites>
+
+    <coverage>
+        <include>
+            <directory suffix=".php">includes</directory>
+        </include>
+        <exclude>
+            <directory>includes/admin/views</directory>
+            <file>includes/index.php</file>
+        </exclude>
+        <report>
+            <html outputDirectory="coverage" lowUpperBound="35" highLowerBound="70"/>
+            <text outputFile="php://stdout" showUncoveredFiles="true"/>
+        </report>
+    </coverage>
+
+    <php>
+        <const name="ABSPATH" value="/tmp/wordpress/"/>
+        <const name="WP_CONTENT_DIR" value="/tmp/wordpress/wp-content"/>
+        <const name="WP_PLUGIN_DIR" value="/tmp/wordpress/wp-content/plugins"/>
+    </php>
+</phpunit>

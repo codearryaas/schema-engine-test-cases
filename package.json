@@ -1,0 +1,29 @@
+{
+  "name": "schema-engine-test-cases",
+  "version": "1.0.0",
+  "description": "Automated testing plugin for Schema Engine (free and pro)",
+  "main": "index.js",
+  "scripts": {
+    "build": "wp-scripts build",
+    "start": "wp-scripts start",
+    "bundle": "npm run build"
+  },
+  "keywords": [
+    "wordpress",
+    "schema",
+    "testing",
+    "phpunit"
+  ],
+  "author": "Rakesh Lawaju",
+  "license": "GPL-2.0-or-later",
+  "devDependencies": {
+    "@wordpress/scripts": "^26.0.0"
+  },
+  "dependencies": {
+    "@wordpress/components": "^25.0.0",
+    "@wordpress/element": "^5.0.0",
+    "@wordpress/i18n": "^4.0.0",
+    "lucide-react": "^0.555.0",
+    "react-select": "^5.8.0"
+  }
+}
