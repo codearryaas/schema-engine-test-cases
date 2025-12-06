@@ -19,7 +19,7 @@ class UserRoleConditionTest extends PHPUnit\Framework\TestCase
         Monkey\setUp();
         require_once SCHEMA_ENGINE_PLUGIN_DIR . 'includes/class-schema-engine-conditions.php';
 
-        $pro_conditions_path = dirname(dirname(dirname(dirname(__DIR__)))) . '/schema-engine-pro/includes/class-schema-engine-pro-conditions.php';
+        $pro_conditions_path = dirname(dirname(dirname(__DIR__))) . '/schema-engine-pro/includes/class-schema-engine-pro-conditions.php';
         if (file_exists($pro_conditions_path)) {
             require_once $pro_conditions_path;
         }
