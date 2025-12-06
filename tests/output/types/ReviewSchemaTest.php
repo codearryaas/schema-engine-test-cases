@@ -71,4 +71,14 @@ class ReviewSchemaTest extends TestCase
         $this->assertEquals('Product', $schema['itemReviewed']['@type']);
         $this->assertEquals('Test Product', $schema['itemReviewed']['name']);
     }
+    public function test_get_fields_structure()
+    {
+        $fields = $this->schema->get_fields();
+        $this->assertIsArray($fields);
+
+        $fieldNames = array_column($fields, 'name');
+        $this->assertContains('itemReviewedName', $fieldNames);
+        $this->assertContains('ratingValue', $fieldNames);
+        $this->assertContains('authorName', $fieldNames);
+    }
 }

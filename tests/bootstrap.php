@@ -44,80 +44,136 @@ Brain\Monkey\setUp();
 
 // Mock WordPress translation functions
 if (!function_exists('__')) {
-    function __($text, $domain = 'default') {
+    function __($text, $domain = 'default')
+    {
         return $text;
     }
 }
 
 if (!function_exists('_e')) {
-    function _e($text, $domain = 'default') {
+    function _e($text, $domain = 'default')
+    {
         echo $text;
     }
 }
 
 if (!function_exists('esc_html__')) {
-    function esc_html__($text, $domain = 'default') {
+    function esc_html__($text, $domain = 'default')
+    {
         return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
     }
 }
 
 if (!function_exists('esc_attr__')) {
-    function esc_attr__($text, $domain = 'default') {
+    function esc_attr__($text, $domain = 'default')
+    {
         return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
     }
 }
 
 if (!function_exists('esc_html')) {
-    function esc_html($text) {
+    function esc_html($text)
+    {
         return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
     }
 }
 
 if (!function_exists('esc_attr')) {
-    function esc_attr($text) {
+    function esc_attr($text)
+    {
         return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
     }
 }
 
 if (!function_exists('esc_url')) {
-    function esc_url($url) {
+    function esc_url($url)
+    {
         return filter_var($url, FILTER_SANITIZE_URL);
     }
 }
 
 if (!function_exists('wp_json_encode')) {
-    function wp_json_encode($data, $options = 0, $depth = 512) {
+    function wp_json_encode($data, $options = 0, $depth = 512)
+    {
         return json_encode($data, $options, $depth);
     }
 }
 
 if (!function_exists('sanitize_text_field')) {
-    function sanitize_text_field($str) {
+    function sanitize_text_field($str)
+    {
         return strip_tags($str);
     }
 }
 
 if (!function_exists('wp_kses_post')) {
-    function wp_kses_post($data) {
+    function wp_kses_post($data)
+    {
         return $data;
     }
 }
 
 if (!function_exists('esc_url_raw')) {
-    function esc_url_raw($url) {
+    function esc_url_raw($url)
+    {
         // Remove invalid protocols like javascript:, data:, vbscript:
         $url = preg_replace('/^(javascript|data|vbscript):/i', '', $url);
-        
+
         // Use filter_var for basic sanitization
         $sanitized = filter_var($url, FILTER_SANITIZE_URL);
-        
+
         // Validate URL format
         if (filter_var($sanitized, FILTER_VALIDATE_URL) === false && !empty($sanitized)) {
             // If not a valid URL but has content, it might be a path
             return $sanitized;
         }
-        
+
         return $sanitized ?: '';
+    }
+}
+
+// Mock State Helper
+class Schema_Engine_Test_Mocks
+{
+    public static $is_user_logged_in = false;
+    public static $current_user = null;
+    public static $is_author = false;
+    public static $queried_object = null;
+
+    public static function reset()
+    {
+        self::$is_user_logged_in = false;
+        self::$current_user = null;
+        self::$is_author = false;
+        self::$queried_object = null;
+    }
+}
+
+if (!function_exists('is_user_logged_in')) {
+    function is_user_logged_in()
+    {
+        return Schema_Engine_Test_Mocks::$is_user_logged_in;
+    }
+}
+
+if (!function_exists('wp_get_current_user')) {
+    function wp_get_current_user()
+    {
+        return Schema_Engine_Test_Mocks::$current_user ?: new stdClass();
+    }
+}
+
+if (!function_exists('is_author')) {
+    function is_author()
+    {
+        return Schema_Engine_Test_Mocks::$is_author;
+    }
+}
+
+if (!function_exists('get_queried_object')) {
+    function get_queried_object()
+    {
+        return Schema_Engine_Test_Mocks::$queried_object;
     }
 }
 

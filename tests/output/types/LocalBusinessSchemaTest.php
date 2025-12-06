@@ -81,4 +81,14 @@ class LocalBusinessSchemaTest extends TestCase
             $this->assertEquals($type, $schema['@type']);
         }
     }
+    public function test_get_fields_structure()
+    {
+        $fields = $this->schema->get_fields();
+        $this->assertIsArray($fields);
+
+        $fieldNames = array_column($fields, 'name');
+        $this->assertContains('name', $fieldNames);
+        $this->assertContains('streetAddress', $fieldNames);
+        $this->assertContains('openingHours', $fieldNames);
+    }
 }

@@ -85,4 +85,14 @@ class JobPostingSchemaTest extends TestCase
         $this->assertArrayHasKey('jobLocation', $schema);
         $this->assertEquals('Place', $schema['jobLocation']['@type']);
     }
+    public function test_get_fields_structure()
+    {
+        $fields = $this->schema->get_fields();
+        $this->assertIsArray($fields);
+
+        $fieldNames = array_column($fields, 'name');
+        $this->assertContains('title', $fieldNames);
+        $this->assertContains('datePosted', $fieldNames);
+        $this->assertContains('jobLocations', $fieldNames);
+    }
 }

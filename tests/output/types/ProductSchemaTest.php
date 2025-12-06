@@ -96,4 +96,14 @@ class ProductSchemaTest extends TestCase
         $this->assertEquals('99.99', $schema['offers']['price']);
         $this->assertEquals('USD', $schema['offers']['priceCurrency']);
     }
+    public function test_get_fields_structure()
+    {
+        $fields = $this->schema->get_fields();
+        $this->assertIsArray($fields);
+
+        $fieldNames = array_column($fields, 'name');
+        $this->assertContains('name', $fieldNames);
+        $this->assertContains('description', $fieldNames);
+        $this->assertContains('price', $fieldNames);
+    }
 }

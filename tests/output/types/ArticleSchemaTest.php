@@ -12,6 +12,30 @@ namespace SchemaEngine\Tests\Output\Types;
 use PHPUnit\Framework\TestCase;
 
 
+// Mock Schema_Reference_Resolver if not exists (Global Scope)
+if (!class_exists('\Schema_Reference_Resolver')) {
+    eval ('class Schema_Reference_Resolver {
+        public static function is_reference($value) {
+            return is_array($value) && isset($value["type"]) && $value["type"] === "reference";
+        }
+        public static function resolve($value) {
+            if (isset($value["id"]) && $value["id"] === "ref-author") {
+                return ["@type" => "Person", "@id" => "https://example.com/#person"];
+            }
+            if (isset($value["id"]) && $value["id"] === "ref-publisher") {
+                return ["@type" => "Organization", "@id" => "https://example.com/#org"];
+            }
+            return null;
+        }
+    }');
+}
+
+// Load Pro Article Schema if available
+$pro_article_path = dirname(dirname(dirname(dirname(__DIR__)))) . '/schema-engine-pro/includes/output/extend-types/class-article-schema.php';
+if (file_exists($pro_article_path)) {
+    require_once $pro_article_path;
+}
+
 class ArticleSchemaTest extends TestCase
 {
     /**
@@ -432,5 +456,78 @@ class ArticleSchemaTest extends TestCase
                 "Failed to build schema with {$subtype} type"
             );
         }
+    }
+
+    /**
+     * Test Pro extension fields
+     */
+    public function test_pro_extension_fields()
+    {
+        if (!class_exists('\Schema_Article_Pro')) {
+            $this->markTestSkipped('Schema_Article_Pro class not found');
+        }
+
+        $fields = $this->schema->get_fields();
+        // Simulate the filter call
+        $proFields = \Schema_Article_Pro::extend_article_fields($fields, 'Article');
+
+        $fieldNames = array_column($proFields, 'name');
+
+        // Check for new fields
+        $this->assertContains('use_author_reference', $fieldNames);
+        $this->assertContains('author_reference', $fieldNames);
+        $this->assertContains('use_publisher_reference', $fieldNames);
+        $this->assertContains('publisher_reference', $fieldNames);
+
+        // Check dependency logic
+        foreach ($proFields as $field) {
+            if ($field['name'] === 'authorName') {
+                $this->assertEquals('use_author_reference', $field['dependsOn']);
+                $this->assertFalse($field['showWhen']);
+            }
+            if ($field['name'] === 'publisherName') {
+                $this->assertEquals('use_publisher_reference', $field['dependsOn']);
+                $this->assertFalse($field['showWhen']);
+            }
+        }
+    }
+
+    /**
+     * Test Pro relationship processing
+     */
+    public function test_pro_relationship_processing()
+    {
+        if (!class_exists('\Schema_Article_Pro')) {
+            $this->markTestSkipped('Schema_Article_Pro class not found');
+        }
+
+        // Mock Schema output
+        $schema = [
+            '@type' => 'Article',
+            'author' => ['@type' => 'Person', 'name' => '{author_name}'],
+            'publisher' => ['@type' => 'Organization', 'name' => '{site_name}']
+        ];
+
+        // 1. Test Author Reference
+        $fields = [
+            'use_author_reference' => true,
+            'author_reference' => ['type' => 'reference', 'id' => 'ref-author']
+        ];
+
+        $processed = \Schema_Article_Pro::process_article_relationships($schema, 'Article', $fields);
+
+        $this->assertEquals('https://example.com/#person', $processed['author']['@id']);
+        $this->assertEquals('Person', $processed['author']['@type']);
+
+        // 2. Test Publisher Reference
+        $fields = [
+            'use_publisher_reference' => true,
+            'publisher_reference' => ['type' => 'reference', 'id' => 'ref-publisher']
+        ];
+
+        $processed = \Schema_Article_Pro::process_article_relationships($schema, 'Article', $fields);
+
+        $this->assertEquals('https://example.com/#org', $processed['publisher']['@id']);
+        $this->assertEquals('Organization', $processed['publisher']['@type']);
     }
 }

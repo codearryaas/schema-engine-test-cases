@@ -74,4 +74,59 @@ class FAQSchemaTest extends TestCase
         $this->assertArrayHasKey('mainEntity', $schema);
         $this->assertCount(1, $schema['mainEntity']);
     }
+
+    public function test_build_faq_with_meta()
+    {
+        $fields = array(
+            'name' => 'My FAQ Page',
+            'url' => 'https://example.com/faq',
+            'items' => array(
+                array(
+                    'question' => 'Q1',
+                    'answer' => 'A1',
+                ),
+            ),
+        );
+
+        $schema = $this->schema->build($fields);
+
+        $this->assertEquals('My FAQ Page', $schema['name']);
+        $this->assertEquals('https://example.com/faq', $schema['url']);
+    }
+
+    public function test_get_schema_structure()
+    {
+        $structure = $this->schema->get_schema_structure();
+
+        $this->assertEquals('FAQPage', $structure['@type']);
+        $this->assertEquals('https://schema.org', $structure['@context']);
+        $this->assertArrayHasKey('label', $structure);
+        $this->assertArrayHasKey('icon', $structure);
+    }
+
+    public function test_get_fields_structure()
+    {
+        $fields = $this->schema->get_fields();
+
+        $this->assertIsArray($fields);
+
+        // Find the items repeater
+        $itemsField = null;
+        foreach ($fields as $field) {
+            if ($field['name'] === 'items') {
+                $itemsField = $field;
+                break;
+            }
+        }
+
+        $this->assertNotNull($itemsField, 'Items field should exist');
+        $this->assertEquals('repeater', $itemsField['type']);
+        $this->assertTrue($itemsField['required']);
+
+        // Verify subfields
+        $this->assertArrayHasKey('fields', $itemsField);
+        $subFieldNames = array_column($itemsField['fields'], 'name');
+        $this->assertContains('question', $subFieldNames);
+        $this->assertContains('answer', $subFieldNames);
+    }
 }

@@ -82,4 +82,14 @@ class PersonSchemaTest extends TestCase
         $this->assertArrayHasKey('sameAs', $schema);
         $this->assertCount(2, $schema['sameAs']);
     }
+    public function test_get_fields_structure()
+    {
+        $fields = $this->schema->get_fields();
+        $this->assertIsArray($fields);
+
+        $fieldNames = array_column($fields, 'name');
+        $this->assertContains('name', $fieldNames);
+        $this->assertContains('url', $fieldNames);
+        $this->assertContains('jobTitle', $fieldNames);
+    }
 }
