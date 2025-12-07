@@ -56,84 +56,87 @@ class Schema_Engine_Test_API
     public function list_tests()
     {
         $tests = array();
-        
+
         // Get test files from the test-cases plugin directory
         $test_cases_dir = SCHEMA_ENGINE_TEST_CASES_DIR;
-        
+
         // Get schema type tests
-        $schema_files = glob( $test_cases_dir . 'tests/output/types/*Test.php' );
-        foreach ( $schema_files as $file ) {
-            $filename = basename( $file );
-            $test_name = str_replace( array( 'Test.php', 'SchemaTest.php' ), '', $filename );
-            
+        $schema_files = glob($test_cases_dir . 'tests/output/types/*Test.php');
+        $pro_types = array('Event', 'HowTo', 'Podcast', 'Recipe', 'Website', 'Custom');
+        foreach ($schema_files as $file) {
+            $filename = basename($file);
+            $test_name = str_replace(array('Test.php', 'SchemaTest.php'), '', $filename);
+
+            $is_pro = in_array($test_name, $pro_types);
+
             $tests[] = array(
-                'file'     => $filename,
-                'name'     => $test_name,
-                'path'     => $file,
-                'type'     => 'schema',
+                'file' => $filename,
+                'name' => $test_name,
+                'path' => $file,
+                'type' => 'schema',
                 'category' => 'Schema Types',
-                'plugin'   => 'free',
-            );
-        }
-        
-        // Get conditions tests
-        $condition_files = glob( $test_cases_dir . 'tests/includes/*Test.php' );
-        foreach ( $condition_files as $file ) {
-            $filename = basename( $file );
-            $test_name = str_replace( 'Test.php', '', $filename );
-            
-            $tests[] = array(
-                'file'     => $filename,
-                'name'     => $test_name,
-                'path'     => $file,
-                'type'     => 'conditions',
-                'category' => 'Template Conditions',
-                'plugin'   => 'free',
-            );
-        }
-        
-        // Get settings/admin tests
-        $admin_files = glob( $test_cases_dir . 'tests/admin/*Test.php' );
-        foreach ( $admin_files as $file ) {
-            $filename = basename( $file );
-            $test_name = str_replace( 'Test.php', '', $filename );
-            
-            $tests[] = array(
-                'file'     => $filename,
-                'name'     => $test_name,
-                'path'     => $file,
-                'type'     => 'settings',
-                'category' => 'Settings & Admin',
-                'plugin'   => 'free',
+                'plugin' => $is_pro ? 'pro' : 'free',
             );
         }
 
-        return rest_ensure_response( array(
+        // Get conditions tests
+        $condition_files = glob($test_cases_dir . 'tests/includes/*Test.php');
+        foreach ($condition_files as $file) {
+            $filename = basename($file);
+            $test_name = str_replace('Test.php', '', $filename);
+
+            $tests[] = array(
+                'file' => $filename,
+                'name' => $test_name,
+                'path' => $file,
+                'type' => 'conditions',
+                'category' => 'Template Conditions',
+                'plugin' => 'free',
+            );
+        }
+
+        // Get settings/admin tests
+        $admin_files = glob($test_cases_dir . 'tests/admin/*Test.php');
+        foreach ($admin_files as $file) {
+            $filename = basename($file);
+            $test_name = str_replace('Test.php', '', $filename);
+
+            $tests[] = array(
+                'file' => $filename,
+                'name' => $test_name,
+                'path' => $file,
+                'type' => 'settings',
+                'category' => 'Settings & Admin',
+                'plugin' => 'free',
+            );
+        }
+
+        return rest_ensure_response(array(
             'success' => true,
-            'tests'   => $tests,
-            'total'   => count( $tests ),
-        ) );
+            'tests' => $tests,
+            'total' => count($tests),
+        ));
     }
 
     public function run_tests($request)
     {
         $test_filter = $request->get_param('filter') ?: '';
-        
+
         // Use test-cases plugin directory for test execution
         $plugin_dir = SCHEMA_ENGINE_TEST_CASES_DIR;
         $config_file = $plugin_dir . 'phpunit.xml';
-        
+
         // Verify phpunit.xml exists
-        if ( ! file_exists( $config_file ) ) {
-            return rest_ensure_response( array(
+        if (!file_exists($config_file)) {
+            return rest_ensure_response(array(
                 'success' => false,
                 'message' => 'PHPUnit configuration file not found: ' . $config_file,
-            ) );
+            ));
         }
-        
+
         // Find PHP CLI binary (not php-fpm)
         $php_binary = $this->get_php_cli_path();
-        
+
         $command = sprintf(
             'cd %s && %s vendor/bin/phpunit --configuration %s',
             escapeshellarg($plugin_dir),
@@ -201,7 +204,7 @@ class Schema_Engine_Test_API
     {
         // Get test history from options
         $history = get_option('schema_engine_test_history', array());
-        
+
         // Calculate stats
         $stats = array(
             'total_runs' => count($history),
@@ -211,16 +214,16 @@ class Schema_Engine_Test_API
         );
 
         if (!empty($history)) {
-            $successful = array_filter($history, function($run) {
+            $successful = array_filter($history, function ($run) {
                 return $run['success'];
             });
-            
+
             $stats['success_rate'] = (count($successful) / count($history)) * 100;
-            
-            $total_time = array_reduce($history, function($carry, $run) {
+
+            $total_time = array_reduce($history, function ($carry, $run) {
                 return $carry + ($run['time'] ?? 0);
             }, 0);
-            
+
             $stats['average_time'] = $total_time / count($history);
         }
 
@@ -230,7 +233,7 @@ class Schema_Engine_Test_API
     private function parse_test_output($output)
     {
         $output_text = implode("\n", $output);
-        
+
         // Extract test results
         $tests_run = 0;
         $assertions = 0;
@@ -240,36 +243,49 @@ class Schema_Engine_Test_API
 
         // Parse summary line
         if (preg_match('/OK \((\d+) tests?, (\d+) assertions?\)/', $output_text, $matches)) {
-            $tests_run = (int)$matches[1];
-            $assertions = (int)$matches[2];
+            $tests_run = (int) $matches[1];
+            $assertions = (int) $matches[2];
         } elseif (preg_match('/Tests: (\d+), Assertions: (\d+), Failures: (\d+)/', $output_text, $matches)) {
-            $tests_run = (int)$matches[1];
-            $assertions = (int)$matches[2];
-            $failures = (int)$matches[3];
+            $tests_run = (int) $matches[1];
+            $assertions = (int) $matches[2];
+            $failures = (int) $matches[3];
         } elseif (preg_match('/Tests: (\d+), Assertions: (\d+), Errors: (\d+)/', $output_text, $matches)) {
-            $tests_run = (int)$matches[1];
-            $assertions = (int)$matches[2];
-            $errors = (int)$matches[3];
+            $tests_run = (int) $matches[1];
+            $assertions = (int) $matches[2];
+            $errors = (int) $matches[3];
         }
 
         // Extract time
         if (preg_match('/Time: ([\d.]+)/', $output_text, $matches)) {
-            $time = (float)$matches[1];
+            $time = (float) $matches[1];
         }
 
         // Extract individual test results
         $test_results = array();
         foreach ($output as $line) {
-            if (preg_match('/✔\s+(.+)/', $line, $matches) || preg_match('/✓\s+(.+)/', $line, $matches)) {
+            if (preg_match('/✔\s+(.+)/', $line, $matches) || preg_match('/✓\s+(.+)/', $line, $matches) || preg_match('/\[x\]\s+(.+)/', $line, $matches)) {
                 $test_results[] = array(
                     'name' => trim($matches[1]),
                     'status' => 'passed',
                 );
-            } elseif (preg_match('/✘\s+(.+)/', $line, $matches) || preg_match('/✗\s+(.+)/', $line, $matches)) {
+            } elseif (preg_match('/✘\s+(.+)/', $line, $matches) || preg_match('/✗\s+(.+)/', $line, $matches) || preg_match('/\[ \]\s+(.+)/', $line, $matches)) {
                 $test_results[] = array(
                     'name' => trim($matches[1]),
                     'status' => 'failed',
                 );
+            }
+        }
+
+        // Extract failure details
+        $failure_details = '';
+        $capturing_failures = false;
+        foreach ($output as $line) {
+            if (strpos($line, 'There was') !== false && (strpos($line, 'failure') !== false || strpos($line, 'error') !== false)) {
+                $capturing_failures = true;
+            }
+
+            if ($capturing_failures) {
+                $failure_details .= $line . "\n";
             }
         }
 
@@ -299,6 +315,7 @@ class Schema_Engine_Test_API
             'errors' => $errors,
             'time' => $time,
             'output' => $output_text,
+            'failure_details' => $failure_details,
             'test_results' => $test_results,
         );
     }

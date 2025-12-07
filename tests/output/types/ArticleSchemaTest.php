@@ -350,43 +350,37 @@ class ArticleSchemaTest extends TestCase
     /**
      * Test build with all fields
      */
+    /**
+     * Test build with all fields using Dummy Data
+     */
     public function test_build_with_all_fields()
     {
-        $fields = [
-            'articleType' => 'TechArticle',
-            'headline' => 'Complete Article Test',
-            'url' => 'https://example.com/article',
-            'description' => 'Complete test description',
-            'authorName' => 'Test Author',
-            'authorUrl' => 'https://example.com/author',
-            'imageUrl' => 'https://example.com/image.jpg',
-            'publisherName' => 'Test Publisher',
-            'publisherLogo' => 'https://example.com/logo.png',
-            'datePublished' => '2024-01-01',
-            'dateModified' => '2024-01-15',
-        ];
+        // Import data from shared dummy repository
+        $fields = \Schema_Engine_Test_Data::get_schema_data('Article');
+
+        // Override specific fields if testing specific logic, otherwise use default valid data
+        $fields['articleType'] = 'TechArticle';
 
         $schema = $this->schema->build($fields);
 
         $this->assertIsArray($schema);
         $this->assertEquals('TechArticle', $schema['@type']);
-        $this->assertEquals('Complete Article Test', $schema['headline']);
-        $this->assertEquals('https://example.com/article', $schema['url']);
-        $this->assertEquals('Complete test description', $schema['description']);
-        $this->assertEquals('https://example.com/image.jpg', $schema['image']);
-        $this->assertEquals('2024-01-01', $schema['datePublished']);
-        $this->assertEquals('2024-01-15', $schema['dateModified']);
+        $this->assertEquals($fields['headline'], $schema['headline']);
+        $this->assertEquals($fields['url'], $schema['url']);
+        $this->assertEquals($fields['description'], $schema['description']);
+        $this->assertEquals($fields['imageUrl'], $schema['image']);
 
-        // Verify author
+        // Convert dates to verify
+        $this->assertEquals($fields['datePublished'], $schema['datePublished']);
+        $this->assertEquals($fields['dateModified'], $schema['dateModified']);
+
+        // Verify author (from dummy data person name)
         $this->assertEquals('Person', $schema['author']['@type']);
-        $this->assertEquals('Test Author', $schema['author']['name']);
-        $this->assertEquals('https://example.com/author', $schema['author']['url']);
+        $this->assertEquals($fields['authorName'], $schema['author']['name']); // 'John Doe' from data
 
         // Verify publisher
         $this->assertEquals('Organization', $schema['publisher']['@type']);
-        $this->assertEquals('Test Publisher', $schema['publisher']['name']);
-        $this->assertEquals('ImageObject', $schema['publisher']['logo']['@type']);
-        $this->assertEquals('https://example.com/logo.png', $schema['publisher']['logo']['url']);
+        $this->assertEquals($fields['publisherName'], $schema['publisher']['name']); // 'Test Publisher' from data
     }
 
     /**

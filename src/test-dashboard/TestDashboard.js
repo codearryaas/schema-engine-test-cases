@@ -230,6 +230,14 @@ const TestDashboard = () => {
                                 </div>
                             </div>
 
+                            {/* Failure Details */}
+                            {!results.success && results.failure_details && (
+                                <div className="failure-details">
+                                    <h3>{__('Failure Details', 'schema-engine')}</h3>
+                                    <pre className="error-log">{results.failure_details}</pre>
+                                </div>
+                            )}
+
                             {/* Individual Test Results */}
                             {results.test_results && results.test_results.length > 0 && (
                                 <div className="test-list">
@@ -268,7 +276,7 @@ const TestDashboard = () => {
                     <p className="description">
                         {__('Run individual test suites or filter by category', 'schema-engine')}
                     </p>
-                    
+
                     {/* Group tests by category */}
                     {Object.entries(
                         tests.reduce((groups, test) => {
@@ -291,9 +299,16 @@ const TestDashboard = () => {
                             <div className="test-suites">
                                 {categoryTests.map((test, index) => (
                                     <div key={index} className="test-suite-item">
-                                        <div className="suite-icon">🧪</div>
+                                        <div className="suite-icon">
+                                            {test.plugin === 'pro' ? '💎' : '🧪'}
+                                        </div>
                                         <div className="suite-content">
-                                            <div className="suite-name">{test.name}</div>
+                                            <div className="suite-header">
+                                                <span className="suite-name">{test.name}</span>
+                                                <span className={`suite-badge ${test.plugin}`}>
+                                                    {test.plugin === 'pro' ? 'PRO' : 'FREE'}
+                                                </span>
+                                            </div>
                                             <div className="suite-file">{test.file}</div>
                                         </div>
                                         <Button

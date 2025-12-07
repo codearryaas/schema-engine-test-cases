@@ -13,6 +13,7 @@ use Brain\Monkey\Filters;
 class UserRoleConditionTest extends PHPUnit\Framework\TestCase
 {
 
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -22,11 +23,14 @@ class UserRoleConditionTest extends PHPUnit\Framework\TestCase
         $pro_conditions_path = dirname(dirname(dirname(__DIR__))) . '/schema-engine-pro/includes/class-schema-engine-pro-conditions.php';
         if (file_exists($pro_conditions_path)) {
             require_once $pro_conditions_path;
-        }
 
-        Filters\expectApplied('schema_engine_evaluate_rule')
-            ->zeroOrMoreTimes()
-            ->andReturnUsing(array(Schema_Engine_Pro_Conditions::get_instance(), 'evaluate_pro_rules'));
+            // Only set up filter if Pro class exists
+            if (class_exists('Schema_Engine_Pro_Conditions')) {
+                Filters\expectApplied('schema_engine_evaluate_rule')
+                    ->zeroOrMoreTimes()
+                    ->andReturnUsing(array(Schema_Engine_Pro_Conditions::get_instance(), 'evaluate_pro_rules'));
+            }
+        }
     }
 
     protected function tearDown(): void
@@ -60,6 +64,10 @@ class UserRoleConditionTest extends PHPUnit\Framework\TestCase
 
     public function test_user_role_condition_match()
     {
+        if (!class_exists('Schema_Engine_Pro_Conditions')) {
+            $this->markTestSkipped('Pro plugin required for user_role conditions');
+        }
+
         $conditions = array(
             'groups' => array(
                 array(
@@ -77,9 +85,11 @@ class UserRoleConditionTest extends PHPUnit\Framework\TestCase
         $user = new stdClass();
         $user->roles = array('administrator');
 
+        // User role conditions require is_author() to be true
+        Schema_Engine_Test_Mocks::$is_author = true;
+        Schema_Engine_Test_Mocks::$queried_object = $user;
         Schema_Engine_Test_Mocks::$is_user_logged_in = true;
         Schema_Engine_Test_Mocks::$current_user = $user;
-        Schema_Engine_Test_Mocks::$is_author = false;
 
         $this->assertTrue(Schema_Engine_Conditions::matches_conditions($conditions));
     }

@@ -10,7 +10,7 @@ namespace SchemaEngine\Tests\Output\Types;
 use PHPUnit\Framework\TestCase;
 
 // Load Pro Podcast Schema if available
-$pro_podcast_path = dirname(dirname(dirname(dirname(__DIR__)))) . '/schema-engine-pro/includes/output/types/class-podcast-schema.php';
+$pro_podcast_path = dirname(dirname(dirname(dirname(__DIR__)))) . '/schema-engine-pro/includes/output/types/class-podcast-episode-schema.php';
 if (file_exists($pro_podcast_path)) {
     require_once $pro_podcast_path;
 }
@@ -22,10 +22,10 @@ class PodcastSchemaTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        if (class_exists('\Schema_Podcast')) {
-            $this->schema = new \Schema_Podcast();
+        if (class_exists('\Schema_Podcast_Episode')) {
+            $this->schema = new \Schema_Podcast_Episode();
         } else {
-            $this->markTestSkipped('Schema_Podcast class not found');
+            $this->markTestSkipped('Schema_Podcast_Episode class not found');
         }
     }
 

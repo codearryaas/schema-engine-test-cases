@@ -39,6 +39,11 @@ if (!defined('SCHEMA_ENGINE_PLUGIN_URL')) {
 // Load Composer autoloader
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
+// Define Test Cases Plugin Directory
+if (!defined('SCHEMA_ENGINE_TEST_CASES_DIR')) {
+    define('SCHEMA_ENGINE_TEST_CASES_DIR', dirname(__DIR__) . '/');
+}
+
 // Initialize Brain Monkey for WordPress function mocking
 Brain\Monkey\setUp();
 
@@ -132,6 +137,37 @@ if (!function_exists('esc_url_raw')) {
     }
 }
 
+// WordPress Options API
+if (!function_exists('update_option')) {
+    function update_option($option, $value)
+    {
+        global $_test_options;
+        if (!isset($_test_options)) {
+            $_test_options = array();
+        }
+        $_test_options[$option] = $value;
+        return true;
+    }
+}
+
+if (!function_exists('get_option')) {
+    function get_option($option, $default = false)
+    {
+        global $_test_options;
+        if (!isset($_test_options)) {
+            $_test_options = array();
+        }
+        return isset($_test_options[$option]) ? $_test_options[$option] : $default;
+    }
+}
+
+if (!function_exists('home_url')) {
+    function home_url($path = '')
+    {
+        return 'https://example.com' . $path;
+    }
+}
+
 // Mock State Helper
 class Schema_Engine_Test_Mocks
 {
@@ -194,3 +230,6 @@ require_once SCHEMA_ENGINE_PLUGIN_DIR . 'includes/output/types/class-person-sche
 require_once SCHEMA_ENGINE_PLUGIN_DIR . 'includes/output/types/class-product-schema.php';
 require_once SCHEMA_ENGINE_PLUGIN_DIR . 'includes/output/types/class-review-schema.php';
 require_once SCHEMA_ENGINE_PLUGIN_DIR . 'includes/output/types/class-video-schema.php';
+
+// Load Test Utilities
+require_once dirname(__DIR__) . '/includes/class-test-data.php';
